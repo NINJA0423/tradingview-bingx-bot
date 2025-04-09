@@ -3,8 +3,9 @@ import requests, hmac, hashlib, time, os
 
 app = Flask(__name__)
 
-API_KEY = "YOUR_API_KEY"
-API_SECRET = "YOUR_API_SECRET"
+# APIキーは環境変数から安全に取得！
+API_KEY = os.environ.get("API_KEY")
+API_SECRET = os.environ.get("API_SECRET")
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -25,6 +26,7 @@ def webhook():
         "timestamp": timestamp
     }
 
+    # 署名を作成（パラメータの順番をソートして結合）
     sign_str = '&'.join([f'{k}={params[k]}' for k in sorted(params)])
     signature = hmac.new(API_SECRET.encode(), sign_str.encode(), hashlib.sha256).hexdigest()
     params["signature"] = signature
@@ -33,12 +35,16 @@ def webhook():
         "X-BX-APIKEY": API_KEY
     }
 
-    url = "https://open-api.bingx.com/openApi/spot/v1/trade/order"
+    url = "https://open-api.bingx.com/openApi/spot/v1/trade/order"  # ← 現物注文用URL！
+
     res = requests.post(url, headers=headers, data=params)
+
+    # ✅ ここが重要！BingXからの応答を表示
     print("BingXレスポンス:", res.json())
+
     return {"status": "ok"}
 
-# ⬇⬇⬇ ここを修正
+# Renderで使えるように外部からアクセス可能な設定
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
