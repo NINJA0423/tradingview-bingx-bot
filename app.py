@@ -1,9 +1,8 @@
 from flask import Flask, request
-import requests, hmac, hashlib, time, json
+import requests, hmac, hashlib, time, os
 
 app = Flask(__name__)
 
-# BingX APIキーとシークレット（テスト用のを入れておいてね）
 API_KEY = "YOUR_API_KEY"
 API_SECRET = "YOUR_API_SECRET"
 
@@ -12,7 +11,6 @@ def webhook():
     data = request.json
     print("受信したデータ:", data)
 
-    # 必要なパラメータ取得
     symbol = data.get("symbol", "BTC-USDT")
     side = data.get("side", "BUY").upper()
     quantity = data.get("amount", 0.01)
@@ -27,7 +25,6 @@ def webhook():
         "timestamp": timestamp
     }
 
-    # 署名を作成（順序が重要）
     sign_str = '&'.join([f'{k}={params[k]}' for k in sorted(params)])
     signature = hmac.new(API_SECRET.encode(), sign_str.encode(), hashlib.sha256).hexdigest()
     params["signature"] = signature
@@ -41,8 +38,7 @@ def webhook():
     print("BingXレスポンス:", res.json())
     return {"status": "ok"}
 
+# ⬇⬇⬇ ここを修正
 if __name__ == "__main__":
-    import os
-port = int(os.environ.get("PORT", 5000))
-app.run(host="0.0.0.0", port=port)
-
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
