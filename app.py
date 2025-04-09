@@ -30,21 +30,23 @@ def webhook():
             "timestamp": timestamp
         }
 
-        # ✅ パラメータを文字列にして、署名を生成
-        sorted_items = sorted(params.items())  # 並び順を保証
+        # 正しい順番で署名を生成
+        sorted_items = sorted(params.items())
         query_string = '&'.join([f"{k}={v}" for k, v in sorted_items])
         signature = hmac.new(API_SECRET.encode(), query_string.encode(), hashlib.sha256).hexdigest()
         params["signature"] = signature
         print("③ 署名完了:", signature)
 
         headers = {
-            "X-BX-APIKEY": API_KEY
+            "X-BX-APIKEY": API_KEY,
+            "Content-Type": "application/x-www-form-urlencoded"
         }
 
         url = "https://open-api.bingx.com/openApi/spot/v1/trade/order"
         print("④ 注文リクエスト送信前")
 
-        res = requests.post(url, headers=headers, data=params)
+        # ✅ ここ！ data → params に変更！
+        res = requests.post(url, headers=headers, params=params)
         print("⑤ 注文送信済み")
         print("⑥ BingXレスポンス (text):", res.text)
 
