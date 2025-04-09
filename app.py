@@ -17,9 +17,9 @@ def webhook():
 
         symbol = data.get("symbol", "BTC-USDT")
         side = data.get("side", "BUY").upper()
-        quantity = str(data.get("amount", "0.01"))  # ← ここでstring化
+        quantity = str(data.get("amount", "0.01"))
+        timestamp = str(int(time.time() * 1000))
 
-        timestamp = str(int(time.time() * 1000))  # ← これもstringにする
         print("② パラメータ抽出完了")
 
         params = {
@@ -30,12 +30,15 @@ def webhook():
             "timestamp": timestamp
         }
 
-        # ソートして署名
+        # ソートして署名対象のクエリ文字列生成
         sorted_items = sorted(params.items())
         query_string = '&'.join([f"{k}={v}" for k, v in sorted_items])
         signature = hmac.new(API_SECRET.encode(), query_string.encode(), hashlib.sha256).hexdigest()
-        params["signature"] = signature
         print("③ 署名完了:", signature)
+
+        # クエリに署名追加
+        final_query = query_string + f"&signature={signature}"
+        print("④ クエリ構築:", final_query)
 
         headers = {
             "X-BX-APIKEY": API_KEY,
@@ -43,11 +46,13 @@ def webhook():
         }
 
         url = "https://open-api.bingx.com/openApi/spot/v1/trade/order"
-        print("④ 注文リクエスト送信前")
+        print("⑤ 注文リクエスト送信前")
 
-        res = requests.post(url, headers=headers, data=params)
-        print("⑤ 注文送信済み")
-        print("⑥ BingXレスポンス (text):", res.text)
+        # ✅ 手動で構築したクエリ文字列をそのまま送信！
+        res = requests.post(url, headers=headers, data=final_query)
+
+        print("⑥ 注文送信済み")
+        print("⑦ BingXレスポンス (text):", res.text)
 
     except Exception as e:
         print("🚨 全体エラー:", str(e))
