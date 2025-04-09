@@ -30,10 +30,12 @@ def webhook():
             "timestamp": timestamp
         }
 
-        sign_str = '&'.join([f'{k}={params[k]}' for k in sorted(params)])
-        signature = hmac.new(API_SECRET.encode(), sign_str.encode(), hashlib.sha256).hexdigest()
+        # ✅ パラメータを文字列にして、署名を生成
+        sorted_items = sorted(params.items())  # 並び順を保証
+        query_string = '&'.join([f"{k}={v}" for k, v in sorted_items])
+        signature = hmac.new(API_SECRET.encode(), query_string.encode(), hashlib.sha256).hexdigest()
         params["signature"] = signature
-        print("③ 署名完了")
+        print("③ 署名完了:", signature)
 
         headers = {
             "X-BX-APIKEY": API_KEY
@@ -44,9 +46,7 @@ def webhook():
 
         res = requests.post(url, headers=headers, data=params)
         print("⑤ 注文送信済み")
-
-        response_text = res.text
-        print("⑥ BingXレスポンス (text):", response_text)
+        print("⑥ BingXレスポンス (text):", res.text)
 
     except Exception as e:
         print("🚨 全体エラー:", str(e))
