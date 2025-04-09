@@ -3,8 +3,6 @@ import requests, hmac, hashlib, time, os
 import logging
 
 app = Flask(__name__)
-
-# ✅ ログを強制的に表示させる設定
 logging.basicConfig(level=logging.DEBUG)
 
 API_KEY = os.environ.get("API_KEY")
@@ -46,11 +44,8 @@ def webhook():
         res = requests.post(url, headers=headers, data=params)
         print("⑤ 注文送信済み")
 
-        try:
-            print("⑥ BingXレスポンス:", res.json())
-        except Exception as e:
-            print("⑥ BingXエラー:", res.text)
-            print("Exception:", str(e))
+        # ✅ レスポンスを「そのまま」出力して原因を確認！
+        print("⑥ BingXレスポンス (text):", res.text)
 
     except Exception as e:
         print("🚨 全体エラー:", str(e))
