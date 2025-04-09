@@ -17,7 +17,7 @@ def webhook():
 
         symbol = data.get("symbol", "BTC-USDT")
         side = data.get("side", "BUY").upper()
-        quantity = data.get("amount", 0.01)
+        quote_order_qty = data.get("amount", 1)
 
         timestamp = int(time.time() * 1000)
         print("② パラメータ抽出完了")
@@ -26,11 +26,10 @@ def webhook():
             "symbol": symbol,
             "side": side,
             "type": "MARKET",
-            "quantity": quantity,
+            "quoteOrderQty": quote_order_qty,
             "timestamp": timestamp
         }
 
-        # 署名作成（パラメータはソート済みで結合）
         sorted_items = sorted(params.items())
         query_string = '&'.join([f"{k}={v}" for k, v in sorted_items])
         signature = hmac.new(API_SECRET.encode(), query_string.encode(), hashlib.sha256).hexdigest()
@@ -45,9 +44,7 @@ def webhook():
         url = "https://open-api.bingx.com/openApi/spot/v1/trade/order"
         print("④ 注文リクエスト送信前")
 
-        # ✅ これが正解！POSTで「data=params」
         res = requests.post(url, headers=headers, data=params)
-
         print("⑤ 注文送信済み")
         print("⑥ BingXレスポンス (text):", res.text)
 
