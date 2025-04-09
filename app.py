@@ -1,7 +1,11 @@
 from flask import Flask, request
 import requests, hmac, hashlib, time, os
+import logging
 
 app = Flask(__name__)
+
+# ✅ ログを強制的に表示させる設定
+logging.basicConfig(level=logging.DEBUG)
 
 API_KEY = os.environ.get("API_KEY")
 API_SECRET = os.environ.get("API_SECRET")
