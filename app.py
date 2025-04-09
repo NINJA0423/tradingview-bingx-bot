@@ -1,9 +1,10 @@
 from flask import Flask, request
 import requests, hmac, hashlib, time, os
 import logging
+import sys
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 API_KEY = os.environ.get("API_KEY")
 API_SECRET = os.environ.get("API_SECRET")
@@ -44,8 +45,8 @@ def webhook():
         res = requests.post(url, headers=headers, data=params)
         print("⑤ 注文送信済み")
 
-        # ✅ レスポンスを「そのまま」出力して原因を確認！
-        print("⑥ BingXレスポンス (text):", res.text)
+        response_text = res.text
+        print("⑥ BingXレスポンス (text):", response_text)
 
     except Exception as e:
         print("🚨 全体エラー:", str(e))
